@@ -1,7 +1,7 @@
 <html>
 <head>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-  <title>HumanaCare</title>
+  <title>Pulse</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="robots" content="noindex, nofollow">
   <meta name="googlebot" content="noindex, nofollow">
@@ -164,16 +164,22 @@ $("#menu-toggle").click(function (e) {
             <li class="sidebar-brand">
                 <img src="/static/img/pulse_white.png" alt="Pulse">
             </li>
-            <li><a href="what-we-do" class="navtxt">My Information</a>
+            <li><a href="/" class="navtxt">Home</a>
 
             </li>
-            <li><a href="what-we-do" class="navtxt">Self Diagnosis</a>
+            <li><a href="/login" class="navtxt">Log In</a>
 
             </li>
-            <li><a href="the-building" class="navtxt">Staying Healthy</a>
+            <li><a href="/my-info" class="navtxt">My Information</a>
 
             </li>
-            <li><a href="volunteer" class="navtxt">Log Out</a>
+            <li><a href="/self-diagnosis" class="navtxt">Self-Diagnosis</a>
+
+            </li>
+            <li><a href="/staying-healthy" class="navtxt">Staying Healthy</a>
+
+            </li>
+            <li><a href="/logout" class="navtxt">Log Out</a>
 
             </li>
         </ul>
@@ -182,14 +188,7 @@ $("#menu-toggle").click(function (e) {
     <!-- Page Content -->
     <div id="page-content-wrapper"> <a href="#" class="btn btn-default" id="menu-toggle"><span class="glyphicon glyphicon-th-list"></span></a>
 
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
-                     <h1>HumanaCare</h1>
-
-                </div>
-            </div>
-        </div>
+        {% block content %}{% endblock %}
     </div>
     <!-- /#page-content-wrapper -->
 </div>

@@ -1,7 +1,161 @@
 <html>
 <head>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-  <title>Bootstrap Login Page Card with Floating Labels</title>
+  <title>Pulse</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <script type="text/javascript" src="//code.jquery.com/jquery-1.11.0.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/css/result-light.css">
+
+      <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+      <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+      <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+
+  <style id="compiled-css" type="text/css">
+      body, html {
+    height: 100%;
+    overflow: hidden;
+}
+#wrapper {
+    padding-left: 0;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+#wrapper.toggled {
+    padding-left: 250px;
+}
+#sidebar-wrapper {
+    z-index: 1000;
+    position: fixed;
+    left: 250px;
+    width: 0;
+    height: 100%;
+    margin-left: -250px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #4e8416;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+#wrapper.toggled #sidebar-wrapper {
+    width: 250px;
+}
+#page-content-wrapper {
+    width: 100%;
+    position: absolute;
+    padding: 15px;
+}
+#wrapper.toggled #page-content-wrapper {
+    position: absolute;
+    margin-right: -250px;
+}
+.btn-default#menu-toggle, .btn-default#menu-toggle:hover, .btn-default#menu-toggle:focus {
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background: none;
+    color: #4e8416;
+}
+/* Sidebar Styles */
+ .sidebar-nav {
+    position: absolute;
+    top: 0;
+    width: 250px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.sidebar-nav li {
+    text-indent: 20px;
+    line-height: 40px;
+}
+.sidebar-nav li a {
+    display: block;
+    text-decoration: none;
+    color: #ddd;
+}
+.sidebar-nav li a:hover {
+    text-decoration: none;
+    color: #444;
+    background: rgba(255, 255, 255, 0.2);
+}
+.sidebar-nav li a:active, .sidebar-nav li a:focus {
+    text-decoration: none;
+}
+.sidebar-nav .sidebar-brand {
+    text-align: left;
+}
+.sidebar-nav .sidebar-brand img {
+    width: 100px;
+}
+.sidebar-nav ul {
+    list-style: none;
+    list-style-position:outside;
+    padding: 0;
+    margin: 0;
+}
+.navtxt {
+    font-size: 20px;
+}
+.sidebar-nav ul > li > a {
+    color: #ddd;
+    text-decoration: none;
+    padding-left: 10px;
+}
+.sidebar-nav ul > li > a:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.6);
+}
+@media(min-width:768px) {
+    #sidebar-wrapper {
+        width: 250px;
+    }
+    #wrapper {
+        padding-left: 250px;
+    }
+    #wrapper.toggled {
+        padding-left: 0;
+    }
+    #wrapper.toggled #sidebar-wrapper {
+        width: 0;
+    }
+    #wrapper.toggled #page-content-wrapper {
+        position: relative;
+        margin-right: 0;
+    }
+    #page-content-wrapper {
+        padding: 20px;
+        position: relative;
+    }
+}
+  </style>
+
+
+  <!-- TODO: Missing CoffeeScript 2 -->
+
+  <script type="text/javascript">//<![CDATA[
+
+    $(window).load(function(){
+      
+$("#menu-toggle").click(function (e) {
+    e.preventDefault();
+    $("#wrapper").toggleClass("toggled");
+});
+
+    });
+
+  //]]></script>
+
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="robots" content="noindex, nofollow">
   <meta name="googlebot" content="noindex, nofollow">
@@ -24,8 +178,6 @@
 }
 
 body {
-  background: #007bff;
-  background: linear-gradient(to right, #0062E6, #33AEFF);
 }
 
 .card-signin {
@@ -37,7 +189,7 @@ body {
 .card-signin .card-title {
   margin-bottom: 2rem;
   font-weight: 300;
-  font-size: 1.5rem;
+  font-size: 6rem;
 }
 
 .card-signin .card-body {
@@ -115,7 +267,7 @@ body {
 .form-label-group input:not(:placeholder-shown)~label {
   padding-top: calc(var(--input-padding-y) / 3);
   padding-bottom: calc(var(--input-padding-y) / 3);
-  font-size: 12px;
+  font-size: 16px;
   color: #777;
 }
 
@@ -171,16 +323,45 @@ body {
 
 </head>
 <body>
-  <div class="container">
+
+<div id="wrapper">
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <ul class="sidebar-nav">
+            <li class="sidebar-brand">
+                <img src="/static/img/pulse_white.png" alt="Pulse">
+            </li>
+            <li><a href="/" class="navtxt">Home</a>
+
+            </li>
+            <li><a href="/login" class="navtxt">Log In</a>
+
+            </li>
+            <li><a href="/my-info" class="navtxt">My Information</a>
+
+            </li>
+            <li><a href="/self-diagnosis" class="navtxt">Self-Diagnosis</a>
+
+            </li>
+            <li><a href="/staying-healthy" class="navtxt">Staying Healthy</a>
+
+            </li>
+        </ul>
+    </div>
+    <!-- /#sidebar-wrapper -->
+    <!-- Page Content -->
+    <div id="page-content-wrapper"> <a href="#" class="btn btn-default" id="menu-toggle"><span class="glyphicon glyphicon-th-list"></span></a>
+
+<div class="container">
     <div class="row">
       <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
         <div class="card card-signin my-5">
           <div class="card-body">
-            <h5 class="card-title text-center">HumanaCare Login</h5>
+            <h5 class="card-title text-center">Pulse Login</h5>
             <form class="form-signin">
               <div class="form-label-group">
                 <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
-                <label for="inputEmail">Email address</label>
+                <label for="inputEmail">Member ID</label>
               </div>
 
               <div class="form-label-group">
@@ -202,5 +383,11 @@ body {
       </div>
     </div>
   </div>
+
+    </div>
+    <!-- /#page-content-wrapper -->
+</div>
+<!-- /#wrapper -->
+
 </body>
 </html>
