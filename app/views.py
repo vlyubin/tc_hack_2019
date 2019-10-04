@@ -31,11 +31,11 @@ def symptom(symtoms):
 
 @app.route('/')
 def home():
-  return redirect('/my-info')
+  return render_template('login.html')
 
 @app.route('/logout')
 def logout():
-  resp = make_response(redirect('/'))
+  resp = make_response(redirect('/login'))
   resp.set_cookie('logged_id', 'no')
   return resp 
 
