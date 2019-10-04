@@ -1,10 +1,40 @@
 {% extends 'base.html' %}
+{% block morecss %}
+<script src="/static/js/jquery.tagsinput-revisited.js"></script>
+<link rel="stylesheet" href="/static/css/jquery.tagsinput-revisited.css">
+
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row">
         <div class="col-lg-12">
              <h1>Self-Diagnosis</h1>
+             <br/>
+             <p>Self-Diagnosis tool let's you check what are the most likely diseases you might have based on the symptoms. We find diseases that match your symptoms, and return the ones that are most likely to occur.</p>
+             <br/>
+
+             <input id="example" name="example" type="text" value="fever,cough">
+             <script>$('#example').tagsInput({
+
+            'placeholder':'Add another symptom',
+
+            'autocomplete': {
+              source: [
+                'fever',
+                'rash',
+                'cough'
+              ]
+            }
+
+            });</script>
         </div>
+    </div>
+    <br/>
+    <button class="btn btn-success" id="search">Search</button>
+    <div id="results">
     </div>
 </div>
 {% endblock %}
