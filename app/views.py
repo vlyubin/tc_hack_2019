@@ -1,5 +1,5 @@
 from flask import request, session
-from flask import Flask, render_template, jsonify, request, redirect, url_for
+from flask import Flask, render_template, jsonify, request, redirect, url_for, make_response
 from app import app
 import datetime
 import os, json
@@ -7,6 +7,26 @@ import plotly
 import plotly.graph_objs as go
 import pandas as pd
 import json
+import urllib
+import urllib.request
+import urllib.parse
+import requests
+
+ML_SERVER_URL = 'http://ec2-34-209-226-198.us-west-2.compute.amazonaws.com:5000'
+
+@app.route('/symptom')
+def symptom(symtoms):
+  """Takes a list of symptoms and returns a sorted list of top 5 diseases"""
+
+  df = pd.read_excel('data/raw_data.xlsx')
+    
+  df = df.fillna(method='ffill')
+  df["match"] = 0
+
+  for i in symtoms:
+      df["match"] += df["Symptom"].apply(lambda x: (str.lower(i) in str.lower(x))*1)
+
+  return df.groupby("Disease")[["match", "Count of Disease Occurrence"]].sum().sort_values(["match", "Count of Disease Occurrence"], ascending = False).reset_index().head(10)
 
 @app.route('/')
 def home():
@@ -14,18 +34,33 @@ def home():
 
 @app.route('/logout')
 def logout():
-  # TODO: Remove login cookie
-  return redirect('/')
+  resp = make_response(redirect('/'))
+  resp.set_cookie('logged_id', 'no')
+  return resp 
 
 @app.route('/login')
 def login():
   return render_template('login.html')
 
-@app.route('/search')
+@app.route('/search', methods=['POST'])
 def search():
+  info = request.get_json(force=True)
+  data = {
+    'source': 'mayo',
+    'query': info['query']
+  }
 
-  rv = []
-  return json.dumps(rv)
+  url = ML_SERVER_URL + '?' + urllib.parse.urlencode(data) 
+  response = requests.post(url=url) 
+  print(response.json())
+
+  return json.dumps(response.json())
+
+@app.route('/login_handler')
+def login_handler():
+  resp = make_response(redirect('/my-info'))
+  resp.set_cookie('logged_id', 'yes')
+  return resp 
 
 @app.route('/self-diagnosis')
 def sd():
@@ -35,75 +70,16 @@ def sd():
 def sh():
   return render_template('stay_healthy.html')
 
+@app.route('/disease-info')
+def di():
+  return render_template('stay_healthy.html')
+
 @app.route('/my-info')
 def claims():
-  data = pd.read_csv("data/two_user_claims.csv")
-  claims_df_mem = data[data.members_id == "96d55072fb0560d1"]
+  if request.cookies.get('logged_id', None) != 'yes':
+      return render_template('unathenticated.html')
 
-  claims_df_mem['event_date'] = pd.to_datetime(claims_df_mem['event_date'])
-
-
-  start = claims_df_mem.event_date.iloc[0]
-  end = claims_df_mem.event_date.iloc[-1]
-  date_generated = [start + datetime.timedelta(days=x) for x in range(0, (end-start).days)]
-
-  df = pd.DataFrame(data={'event_date': date_generated})
-
-  temp_df = df.merge(claims_df_mem[['event_date', 'net_paid_amt']], how = 'left', on = 'event_date')
-
-  temp_df['cum_net_paid_amt'] = temp_df.net_paid_amt.fillna(0).cumsum()
-
-
-  # fig = go.Figure()
-  # fig.add_trace(go.Scatter(
-  #                 x=temp_df['event_date'],
-  #                 y=temp_df['cum_net_paid_amt'],
-  #                 name="Ammount Spent so far",
-  #                 line_color='deepskyblue',
-  #                 opacity=0.8))
-  # return render_template(fig.show())
-
-
-  graphs = [
-    dict(
-      data=[
-        dict(
-          x=temp_df['event_date'],
-          y=temp_df['cum_net_paid_amt'],
-          type='scatter'
-        ),
-      ],
-      layout=dict(
-        title='first graph'
-      )
-    )
-
-    # dict(
-    #   data=[
-    #     dict(
-    #       x=ts.index,  # Can use the pandas data structures directly
-    #       y=ts
-    #     )
-    #   ]
-    # )
-  ]
-
-  # Add "ids" to each of the graphs to pass up to the client
-  # for templating
-  ids = ['graph-{}'.format(i) for i, _ in enumerate(graphs)]
-
-  # Convert the figures to JSON
-  # PlotlyJSONEncoder appropriately converts pandas, datetime, etc
-  # objects to their JSON equivalents
-  graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
-
-  return render_template('claims.html',
-               ids=ids,
-               data_x=list(map(lambda x: "", list(temp_df['event_date']))),
-               data_y=list(temp_df['cum_net_paid_amt']))
-
-
-
+  return render_template('claims.html')
 
 @app.route('/base')
 def base():

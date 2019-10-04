@@ -8,18 +8,25 @@
              <h1>Staying Healthy</h1>
              <br/>
              
-<form>
   <div class="form-group">
-    <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="help" placeholder="Enter a question or a search query">
+    <input type="text" class="form-control" id="query" aria-describedby="help" placeholder="Enter a question or a search query">
     <small id="help" class="form-text text-muted">You can search for things such as "What is abdominal aortic aneurysm?" or "How many hairs do people lose per day?"</small>
   </div>
-  <button type="submit" class="btn btn-success">Search</button>
-</form>
-
+  <button class="btn btn-success" id="search">Search</button>
+  <br/>
+  <br/>
+      <div id="ansdiv" style="display: none;">
+        <p>Answer: <b id="answer">in teenage years</b></p>
+        <p id="anstitle">Document title: Atypical depression</p>
+        <p id="paragraph">Relevant paragraph: It\\'s not known exactly what causes atypical depression or why some people have different features of depression. Atypical depression often starts in the teenage years, earlier than other types of depression, and can have a more long-term (chronic) course. As with other types of depression, a combination of factors may be involved. These include:  Brain differences. Neurotransmitters are naturally occurring brain chemicals that carry signals to other parts of your brain and body. When these chemicals are abnormal or impaired, the function of nerve receptors and nerve systems change, leading to depression.</p>
+        <p>See more at <a href="http://google.com" id="anslink">google.com</a></p>
+        <br/>
+        <p>Other useful resources: <a href="http://google.com" id="l1">google.com</a>, <a id="l2" href="http://google.com">google.com</a>, <a id="l3" href="http://google.com">google.com</a></p>.
+      </div>
         </div>
     </div>
 </div>
 {% endblock %}
 {% block js %}
-
+<script src="/static/js/answer.js"></script>
 {% endblock %}

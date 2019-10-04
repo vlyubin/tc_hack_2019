@@ -140,21 +140,6 @@
   </style>
 
 
-  <!-- TODO: Missing CoffeeScript 2 -->
-
-  <script type="text/javascript">//<![CDATA[
-
-    $(window).load(function(){
-      
-$("#menu-toggle").click(function (e) {
-    e.preventDefault();
-    $("#wrapper").toggleClass("toggled");
-});
-
-    });
-
-  //]]></script>
-
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="robots" content="noindex, nofollow">
@@ -344,7 +329,9 @@ body {
 
             </li>
             <li><a href="/staying-healthy" class="navtxt">Staying Healthy</a>
+            </li>
 
+            <li><a href="/disease-info" class="navtxt">Disease Info</a>
             </li>
         </ul>
     </div>
@@ -358,15 +345,13 @@ body {
         <div class="card card-signin my-5">
           <div class="card-body">
             <h1 class="card-title text-center" text-width="400">pulse</h1>
-            <form class="form-signin">
+            <form class="form-signin" action="/login_handler">
               <div class="form-label-group">
-                <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
-                <label for="inputEmail">Member ID</label>
+                <input type="email" id="inputEmail" class="form-control" placeholder="Email" required  value="Email" onfocus="if(this.value==this.defaultValue)this.value='';" onblur="if(this.value=='')this.value=this.defaultValue;">
               </div>
 
               <div class="form-label-group">
-                <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>
-                <label for="inputPassword">Password</label>
+                <input type="password" id="inputPassword" class="form-control" placeholder="Password" required value="Password" onfocus="if(this.value==this.defaultValue)this.value='';" onblur="if(this.value=='')this.value=this.defaultValue;">
               </div>
 
               <div class="custom-control custom-checkbox mb-3">
@@ -388,6 +373,16 @@ body {
     <!-- /#page-content-wrapper -->
 </div>
 <!-- /#wrapper -->
+
+  <script type="text/javascript">//<![CDATA[
+
+      
+$("#menu-toggle").click(function (e) {
+    e.preventDefault();
+    $("#wrapper").toggleClass("toggled");
+});
+
+  //]]></script>
 
 </body>
 </html>
