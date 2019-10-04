@@ -11,6 +11,7 @@ import urllib
 import urllib.request
 import urllib.parse
 import requests
+from .utils import get_title_to_url_cahce
 
 ML_SERVER_URL = 'http://ec2-34-209-226-198.us-west-2.compute.amazonaws.com:5000'
 
@@ -54,7 +55,11 @@ def search():
   response = requests.post(url=url) 
   print(response.json())
 
-  return json.dumps(response.json())
+  rv = response.json()
+  for entry in rv:
+    entry[3] = get_title_to_url_cahce()[entry[1].split('-')[0]]
+
+  return json.dumps(rv)
 
 @app.route('/login_handler')
 def login_handler():

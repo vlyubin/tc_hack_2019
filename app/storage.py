@@ -42,6 +42,12 @@ def retrive_webpage_by_title(title):
     rv = cursor.execute("SELECT * FROM webpages WHERE title = ?", title)
     return list(rv)
 
+def retrive_all_webpages():
+    global CONNECTION
+    cursor = CONNECTION.cursor()
+
+    rv = cursor.execute("SELECT * FROM webpages")
+    return list(rv)
 
 if __name__ == '__main__':
     create_tables()
