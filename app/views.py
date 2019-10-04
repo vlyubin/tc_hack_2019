@@ -34,6 +34,9 @@ def claims():
   data = pd.read_csv("data/two_user_claims.csv")
   claims_df_mem = data[data.members_id == "96d55072fb0560d1"]
 
+  claims_df_mem['event_date'] = pd.to_datetime(claims_df_mem['event_date'])
+
+
   start = claims_df_mem.event_date.iloc[0]
   end = claims_df_mem.event_date.iloc[-1]
   date_generated = [start + datetime.timedelta(days=x) for x in range(0, (end-start).days)]
