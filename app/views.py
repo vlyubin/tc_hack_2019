@@ -6,6 +6,7 @@ import os, json
 import plotly
 import plotly.graph_objs as go
 import pandas as pd
+import json
 
 @app.route('/')
 def home():
@@ -73,19 +74,6 @@ def claims():
       layout=dict(
         title='first graph'
       )
-    ),
-
-    dict(
-      data=[
-        dict(
-          x=[1, 3, 5],
-          y=[10, 50, 30],
-          type='bar'
-        ),
-      ],
-      layout=dict(
-        title='second graph'
-      )
     )
 
     # dict(
@@ -109,7 +97,8 @@ def claims():
 
   return render_template('claims.html',
                ids=ids,
-               graphJSON=graphJSON)
+               data_x=list(map(str, list(temp_df['event_date']))),
+               data_y=list(temp_df['cum_net_paid_amt']))
 
 
 

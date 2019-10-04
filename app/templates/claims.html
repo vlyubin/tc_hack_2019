@@ -4,8 +4,24 @@
     <div class="row">
         <div class="col-lg-12">
              <h1>My Information</h1>
-             <p>{{ graphJSON }}</p>
+             <div id='myDiv' style="width:600px;height:600;"></div>
         </div>
     </div>
 </div>
+<script>
+var data = [];
+console.log(data);
+
+var layout = {
+  xaxis: {
+    range: {{data_x}}
+  },
+  yaxis: {
+    range: {{data_y}}
+  },
+  title:'Data Labels Hover'
+};
+
+Plotly.newPlot('myDiv', data, layout);
+</script>
 {% endblock %}
