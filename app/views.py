@@ -31,7 +31,7 @@ def symptom(symtoms):
 
 @app.route('/')
 def home():
-  return render_template('index.html')
+  return redirect('/my-info')
 
 @app.route('/logout')
 def logout():
