@@ -32,14 +32,7 @@ def sh():
 @app.route('/my-info')
 def claims():
   data = pd.read_csv("data/two_user_claims.csv")
-  print(data)
   claims_df_mem = data[data.members_id == "96d55072fb0560d1"]
-
-
-  claims_df_mem['event_date'] = claims_df_mem.event_date.apply(lambda x: datetime.datetime.strptime(x, "%Y-%m-%dT%H:%M:%SZ"))
-
-  claims_df_mem.sort_values('event_date', inplace = True)
-
 
   start = claims_df_mem.event_date.iloc[0]
   end = claims_df_mem.event_date.iloc[-1]
