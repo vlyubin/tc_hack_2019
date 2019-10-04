@@ -10,6 +10,8 @@ import urllib.parse
 import urllib.request
 from datetime import datetime
 
+import csv
+
 import html2text
 import pymongo
 import requests
@@ -19,6 +21,20 @@ from storage import *
 
 
 logger = logging.getLogger(__name__)
+
+def getpars(text):
+    pars = text.split('\n')
+    newpars = ['']
+
+    idx = 0
+    while idx < len(pars):
+        if len(newpars[-1]) < 400:
+            newpars[-1] += ' ' + pars[idx]
+        else:
+            newpars.append(pars[idx])
+        idx += 1
+
+    return str(newpars)
 
 
 class Crawler(object):
@@ -34,6 +50,9 @@ class Crawler(object):
         self.custom_info = {'content_element_css_class': 'content'}
         assert 'url_list' in credentials or 'crawling_urls' in credentials,\
             'Credentials must contain URL description'
+
+        self.writeFile = open('mayo.csv', 'w')
+        self.writer = csv.writer(self.writeFile)
 
     def store_all(self):
         print('store_all!')
@@ -57,16 +76,26 @@ class Crawler(object):
         title = Crawler.remove_invalid_chars(title)
 
         html = Crawler.fix_relative_links(html, item['url'])
+
+        html.replace('<h2>Overview</h2>', '')
+        html.replace('<h2>Symptoms</h2>', '')
+        html.replace('<h2>Causes</h2>', '')
+        html.replace('<h2>Risk factors</h2>', '')
+        html.replace('<h2>Complications</h2>', '')
+        html.replace('<h2>Prevention</h2>', '')
+
         text = Crawler.get_clean_text(html)
 
-        text = text.split('Print')[1].strip()
+        text = text.split('Print')[1].split('By Mayo Clinic Staff')[0].strip()
 
-        text = text[:4000]
-        print('Lenfth is ' + str(len(text)))
+        short_text = text[:4000]
+        print('Length is ' + str(len(short_text)))
 
-        insert_webpage(item['title'], item['url'], text, text.split('\n')[0], text)
-        print('Insertion is done!')
 
+        insert_webpage(item['title'], item['url'], short_text, short_text.split('\n')[0])
+
+        self.writer.writerow([item['title'], item['url'], text.split('\n')[0], getpars(text)])
+        self.writeFile.flush()
 
     def scrape_site(self):
         if 'crawling_urls' in self.credentials:

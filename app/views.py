@@ -21,6 +21,12 @@ def logout():
 def login():
   return render_template('login.html')
 
+@app.route('/search')
+def search():
+
+  rv = []
+  return json.dumps(rv)
+
 @app.route('/self-diagnosis')
 def sd():
   return render_template('self_diagnose.html')
@@ -93,7 +99,7 @@ def claims():
 
   return render_template('claims.html',
                ids=ids,
-               data_x=list(map(str, list(temp_df['event_date']))),
+               data_x=list(map(lambda x: "", list(temp_df['event_date']))),
                data_y=list(temp_df['cum_net_paid_amt']))
 
 

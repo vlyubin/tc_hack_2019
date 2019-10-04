@@ -26,13 +26,13 @@ def create_tables():
     cursor = CONNECTION.cursor()
     cursor.execute("DROP TABLE webpages")
     CONNECTION.commit()
-    cursor.execute("CREATE TABLE webpages(title VARCHAR(1024),url VARCHAR(1024),cleantext VARCHAR(4096),abstract VARCHAR(4096),paragraphs VARCHAR(4096))")
+    cursor.execute("CREATE TABLE webpages(title VARCHAR(1024),url VARCHAR(1024),cleantext VARCHAR(4096),abstract VARCHAR(4096))")
     CONNECTION.commit()
 
-def insert_webpage(title, url, cleantext, abstract, paragraphs):
+def insert_webpage(title, url, cleantext, abstract):
     global CONNECTION
     cursor = CONNECTION.cursor()
-    cursor.execute("""INSERT INTO webpages(title,url,cleantext,abstract,paragraphs) VALUES (?, ?, ?, ?, ?)""", title.encode('utf-8'), url.encode('utf-8'), cleantext.encode('utf-8'), abstract.encode('utf-8'), paragraphs.encode('utf-8'))
+    cursor.execute("""INSERT INTO webpages(title,url,cleantext,abstract) VALUES (?, ?, ?, ?)""", title.encode('utf-8'), url.encode('utf-8'), cleantext.encode('utf-8'), abstract.encode('utf-8'))
     CONNECTION.commit()
 
 def retrive_webpage_by_title(title):
