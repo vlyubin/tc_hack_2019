@@ -8,7 +8,7 @@ import Levenshtein
 def symptom(symtoms):
 	"""Takes a list of symptoms and returns a sorted list of top 5 diseases"""
 
-	df = pd.read_excel('raw_data.xlsx')
+	df = pd.read_excel('data/raw_data.xlsx')
 # 	df[] = s.split(' ', 1)[1]
     
 	df = df.fillna(method='ffill')
