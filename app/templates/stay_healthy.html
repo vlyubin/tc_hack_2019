@@ -1,9 +1,21 @@
 {% extends 'base.html' %}
+{% block morecss %}
+{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row">
         <div class="col-lg-12">
              <h1>Staying Healthy</h1>
+             <br/>
+             
+<form>
+  <div class="form-group">
+    <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="help" placeholder="Enter a question or a search query">
+    <small id="help" class="form-text text-muted">You can search for things such as "What is abdominal aortic aneurysm?" or "How many hairs do people lose per day?"</small>
+  </div>
+  <button type="submit" class="btn btn-success">Search</button>
+</form>
+
         </div>
     </div>
 </div>
