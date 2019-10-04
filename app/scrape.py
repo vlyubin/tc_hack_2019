@@ -15,6 +15,8 @@ import pymongo
 import requests
 from bs4 import BeautifulSoup, UnicodeDammit
 
+from storage import *
+
 
 logger = logging.getLogger(__name__)
 
@@ -29,49 +31,42 @@ class Crawler(object):
 
     def __init__(self, credentials):
         self.credentials = credentials
+        self.custom_info = {'content_element_css_class': 'content'}
         assert 'url_list' in credentials or 'crawling_urls' in credentials,\
             'Credentials must contain URL description'
 
     def store_all(self):
+        print('store_all!')
         scraped_data = self.scrape_site()
         sleep_time = 1
         for i, item in enumerate(scraped_data):
-            while True:
-                try:
-                    self.store_item(
-                        item,
-                        'webpage'
-                    )
-                except Exception:
-                    print('Some error!')
+            self.store_item(
+                item,
+                'webpage'
+            )
 
     def store_item(self, item, item_type):
-        raise Exception("Not Implamanted!")
+        print(item['title'])
+        print(item['url'])
         html = unicodedata.normalize('NFKD',
-            UnicodeDammit(self.get_clean_html(item['original_item']['html'],
-            self.get_origin(item['link'], default_origin=item.get('origin', None)), item.get('custom_info', {}))).unicode_markup)
-        title = item['original_item']['title']
+            UnicodeDammit(self.get_clean_html(item['html'],
+            custom_info=self.custom_info)).unicode_markup)
+        title = item['title']
 
-        html = SitemapConnector.remove_invalid_chars(html)
-        title = SitemapConnector.remove_invalid_chars(title)
+        html = Crawler.remove_invalid_chars(html)
+        title = Crawler.remove_invalid_chars(title)
 
-        html = SitemapConnector.fix_relative_links(html, item['link'])
+        html = Crawler.fix_relative_links(html, item['url'])
+        text = Crawler.get_clean_text(html)
 
-        raise Execption("Implement storage mechanism!")
-        '''
-        get_mongo_client()[str(self.org_id)].update_one(
-            {'id': 'webpage_%s' % hashlib.sha1(str(item['url']).encode('utf-8')).hexdigest()[:16]},
-            {'$set': {
-                'doc_type': item_type,
-                'original_item': item,
-                'is_deleted': False,
-                'updated_at': item['timestamp_scraped'],
-                'link': item['url'],
-                'custom_info': self.custom_info,
-                'origin': self.get_origin(item['url'])
-            }},
-            upsert=True)
-        '''
+        text = text.split('Print')[1].strip()
+
+        text = text[:4000]
+        print('Lenfth is ' + str(len(text)))
+
+        insert_webpage(item['title'], item['url'], text, text.split('\n')[0], text)
+        print('Insertion is done!')
+
 
     def scrape_site(self):
         if 'crawling_urls' in self.credentials:
@@ -105,7 +100,7 @@ class Crawler(object):
             while num_attmepts_left > 0:
                 num_attmepts_left -= 1
                 try:
-                    r = requests.get(url, headers=self.HEADERS, verify=False)
+                    r = requests.get(url, headers=self.HEADERS)
                     soup = BeautifulSoup(r.content, 'lxml')
                     break
                 except requests.exceptions.ConnectionError:
@@ -145,20 +140,21 @@ class Crawler(object):
 
             # Add outgoing links to further processing
             url_base = urllib.parse.urljoin(url, '/')
-            for link in soup.find_all('a', href=True):
-                new_link = link['href'] if link['href'].startswith('http') else urllib.parse.urljoin(url_base, link['href'])
-
-                if new_link in urls_processed:
-                    continue
-
-                should_be_visited = False
-                for pattern in crawling_urls_data.get('valid_patterns', []) + crawling_urls_data.get('valid_patterns_no_store', []):
-                    if re.match(pattern, new_link):
-                        should_be_visited = True
-                        break
-
-                if should_be_visited:
-                    urls_to_process.append(new_link)
+            if url.startswith('https://www.mayoclinic.org/diseases-conditions/index'):
+                for link in soup.find_all('a', href=True):
+                    new_link = link['href'] if link['href'].startswith('http') else urllib.parse.urljoin(url_base, link['href'])
+    
+                    if new_link in urls_processed:
+                        continue
+    
+                    should_be_visited = False
+                    for pattern in crawling_urls_data.get('valid_patterns', []) + crawling_urls_data.get('valid_patterns_no_store', []):
+                        if re.match(pattern, new_link):
+                            should_be_visited = True
+                            break
+    
+                    if should_be_visited:
+                        urls_to_process.append(new_link)
 
             logger.info("Processed page %s" % url)
 
@@ -181,7 +177,7 @@ class Crawler(object):
             if i % 10 == 0:
                 logger.info("Processed %d page(s)", i + 1)
 
-    def get_clean_html(self, html, origin, custom_info={}):
+    def get_clean_html(self, html, custom_info):
         soup = BeautifulSoup(html, 'lxml')
 
         # Remove useless tags
@@ -199,57 +195,25 @@ class Crawler(object):
 
         if 'content_element_css_class' in custom_info:
             clean_html = str(soup.find('div', {'class': custom_info['content_element_css_class']}))
-
+            return clean_html
+            
         if clean_html is not None and clean_html != '' and clean_html != 'None':
+            print('here')
             return str(clean_html)
-
-        # Return content inside the tag that holds relevant content - defalts to body
-        tag = org_feature_instances.SITEMAP_CONNECTOR_ORIGIN_TO_TAG_WITH_CONTENT.apply_to_org(self.org_id)
-        if tag:
-            tag_result = soup.find(tag.get(origin, 'body'))
-            return str(tag_result) if tag_result is not None else str(soup.find('body'))
-
-        # Class
-        css_class = org_feature_instances.CSS_CONTENT_CLASS.apply_to_org(self.org_id)
-        if css_class:
-            return str(soup.find('div', {'class': css_class}))
 
         return str(soup.find('body'))
 
-    def get_clean_text(self, html):
+    @staticmethod
+    def get_clean_text(html):
         soup = BeautifulSoup(html, 'lxml')
-
-        invalid_html_tags = org_feature_instances.INVALID_HTML_TAGS.apply_to_org(self.org_id)
-        if invalid_html_tags is not None:
-            for args in invalid_html_tags:
-                tags_to_remove = soup.find_all(**args)
-                [tag.extract() for tag in tags_to_remove]
-
-        text_tags = []
-
-        valid_html_tags = org_feature_instances.VALID_HTML_TAGS.apply_to_org(self.org_id)
-        for args in valid_html_tags:
-            text_tags += soup.find_all(**args)
-            if text_tags:
-                break
-
-        stripped_text = [' '.join(item.text.split()) for item in text_tags]
-        text = "\n\n".join(stripped_text)
-
-        # Gusto specific filters - if there are more of these, make these an org feature
-        if 'Free tools\n\nCustomer stories\n\nContact us\n\n' in text:
-            text = ' '.join(text.split('Free tools\n\nCustomer stories\n\nContact us\n\n')[1:])
-        if 'Gusto\u2019s mission is to create a world' in text:
-            text = ' '.join(text.split('Gusto\u2019s mission is to create a world')[:-1])
-
-        return SitemapConnector.remove_invalid_chars(text)
+        return soup.text
 
     @staticmethod
     def remove_invalid_chars(text):
-        text = text.replace('\\n', '')
-        text = text.replace('\\r', '')
+        text = text.replace('\\n', '\n')
+        text = text.replace('\\r', '\n')
         text = text.replace('\r', '\n')
-        text = text.replace('\\t', '')
+        text = text.replace('\\t', ' ')
         text = text.replace('\t', ' ')
         if '[if lt IE 9]>' in text:
             text = text.split('[if lt IE 9]>')[1]
@@ -273,3 +237,14 @@ class Crawler(object):
                 url['src'] = urllib.parse.urljoin(base_url, link_address)
 
         return str(soup)
+
+if __name__ == '__main__':
+    credentials = {
+      'crawling_urls': {
+        'starting_urls': ['https://www.mayoclinic.org/diseases-conditions/index?letter=A'],
+        'valid_patterns': ['https://www.mayoclinic.org/diseases-conditions/.*'],
+        'valid_patterns_no_store': ['https://www.mayoclinic.org/diseases-conditions/index.*']
+      }
+    }
+    c = Crawler(credentials)
+    c.store_all()
