@@ -6,8 +6,8 @@ from cdqa.utils.filters import filter_paragraphs
 from cdqa.utils.download import download_model, download_bnpp_data
 from cdqa.pipeline.cdqa_sklearn import QAPipeline
 
-from flask import Flask, request
 from flask import request
+from flask import Flask, request
 app = Flask(__name__)
 
 df = pd.read_csv('data/mayo.csv',converters={'paragraphs': literal_eval})
@@ -16,13 +16,19 @@ cdqa_pipeline = QAPipeline(reader='models/bert_qa_vGPU-sklearn.joblib', retrieve
 cdqa_pipeline = cdqa_pipeline.to("cuda")
 cdqa_pipeline.fit_retriever(df)
 
+df2 = pd.read_csv('data/mayo.csv',converters={'paragraphs': literal_eval})
+df2 = filter_paragraphs(df2)
+cdqa_pipeline2 = QAPipeline(reader='models/bert_qa_vGPU-sklearn.joblib', retriever="tfidf")
+cdqa_pipeline2 = cdqa_pipeline2.to("cuda")
+cdqa_pipeline2.fit_retriever(df2)
+
 
 def answer_mayo_query(query):
   prediction = cdqa_pipeline.predict(query, n_predictions=4)
   return prediction
 
 def answer_wellness_query(query):
-  prediction = cdqa_pipeline.predict(query, n_predictions=4)
+  prediction = cdqa_pipeline2.predict(query, n_predictions=4)
   return prediction
 
 @app.route('/', methods=['POST'])

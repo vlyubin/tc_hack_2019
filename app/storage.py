@@ -39,7 +39,7 @@ def retrive_webpage_by_title(title):
     global CONNECTION
     cursor = CONNECTION.cursor()
 
-    rv = cursor.execute("SELECT * FROM webpages WHERE title = ?", title)
+    rv = cursor.execute("SELECT title,url FROM webpages WHERE title = ?", title)
     return list(rv)
 
 def retrive_all_webpages():

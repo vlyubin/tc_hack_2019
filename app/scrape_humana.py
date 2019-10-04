@@ -47,11 +47,11 @@ class Crawler(object):
 
     def __init__(self, credentials):
         self.credentials = credentials
-        self.custom_info = {'content_element_css_class': 'content'}
+        self.custom_info = {'content_element_css_class': 'content-justify'}
         assert 'url_list' in credentials or 'crawling_urls' in credentials,\
             'Credentials must contain URL description'
 
-        self.writeFile = open('mayo.csv', 'w')
+        self.writeFile = open('humana.csv', 'w')
         self.writer = csv.writer(self.writeFile)
 
     def store_all(self):
@@ -77,20 +77,14 @@ class Crawler(object):
 
         html = Crawler.fix_relative_links(html, item['url'])
 
-        html.replace('<h2>Overview</h2>', '')
-        html.replace('<h2>Symptoms</h2>', '')
-        html.replace('<h2>Causes</h2>', '')
-        html.replace('<h2>Risk factors</h2>', '')
-        html.replace('<h2>Complications</h2>', '')
-        html.replace('<h2>Prevention</h2>', '')
-
         text = Crawler.get_clean_text(html)
 
-        text = text.split('Print')[1].split('By Mayo Clinic Staff')[0].strip()
+
+        if '}' in text:
+            text = text.split('}')[-1]
 
         short_text = text[:4000]
         print('Length is ' + str(len(short_text)))
-
 
         insert_webpage(item['title'], item['url'], short_text, short_text.split('\n')[0])
 
@@ -107,85 +101,7 @@ class Crawler(object):
         return self.get_url_contents(urls)
 
     def crawl_contents(self, crawling_urls_data):
-        timestamp_scraped = datetime.utcnow().isoformat() + "Z"
-        urls_processed = set()
-        urls_to_process = []
-
-        for url in crawling_urls_data['starting_urls']:
-            urls_to_process.append(url)
-
-        while len(urls_to_process) > 0:
-            url = urls_to_process.pop()
-            if url in urls_processed:
-                continue
-            if url.endswith('pdf') or url.endswith('zip') or url.endswith('xlsx'):
-                # We don't handle PDFs yet
-                continue
-            urls_processed.add(url)
-
-            # Fetch the page - if we get rate limited, try again
-            soup = None
-            num_attmepts_left = 3
-            while num_attmepts_left > 0:
-                num_attmepts_left -= 1
-                try:
-                    r = requests.get(url, headers=self.HEADERS)
-                    soup = BeautifulSoup(r.content, 'lxml')
-                    break
-                except requests.exceptions.ConnectionError:
-                    time.sleep(5)
-
-            if soup is None:
-                continue
-            # Wait to avoid getting rate-limited
-            time.sleep(1)
-
-            # The page is considered to be valid for storage, if it matches valid_patterns and doesn't match
-            # valid_patterns_no_store
-            is_valid = False
-            for pattern in crawling_urls_data.get('valid_patterns', []):
-                if re.match(pattern, url):
-                    is_valid = True
-                    break
-            for pattern in crawling_urls_data.get('valid_patterns_no_store', []):
-                if re.match(pattern, url):
-                    is_valid = False
-                    break
-
-            if is_valid:
-                # Return doc dict for valid pages
-                logger.info("Yielding page %s" % url)
-                try:
-                    page = {
-                        'title': html2text.html2text(soup.title.string).strip(),
-                        'url': url,
-                        'html': str(r.content),
-                        'timestamp_scraped': timestamp_scraped
-                    }
-                    yield page
-                except:
-                    # Most likely this page returned 404, ignore it
-                    continue
-
-            # Add outgoing links to further processing
-            url_base = urllib.parse.urljoin(url, '/')
-            if url.startswith('https://www.mayoclinic.org/diseases-conditions/index'):
-                for link in soup.find_all('a', href=True):
-                    new_link = link['href'] if link['href'].startswith('http') else urllib.parse.urljoin(url_base, link['href'])
-    
-                    if new_link in urls_processed:
-                        continue
-    
-                    should_be_visited = False
-                    for pattern in crawling_urls_data.get('valid_patterns', []) + crawling_urls_data.get('valid_patterns_no_store', []):
-                        if re.match(pattern, new_link):
-                            should_be_visited = True
-                            break
-    
-                    if should_be_visited:
-                        urls_to_process.append(new_link)
-
-            logger.info("Processed page %s" % url)
+        raiseException()
 
     def get_url_contents(self, urls):
         timestamp_scraped = datetime.utcnow().isoformat() + "Z"
@@ -198,7 +114,7 @@ class Crawler(object):
             page = {
                 'title': html2text.html2text(soup.title.string).strip(),
                 'url': url,
-                'html': html,
+                'html': str(r.content),
                 'timestamp_scraped': timestamp_scraped
             }
             yield page
@@ -269,11 +185,87 @@ class Crawler(object):
 
 if __name__ == '__main__':
     credentials = {
-      'crawling_urls': {
-        'starting_urls': ['https://www.mayoclinic.org/diseases-conditions/index?letter=A'],
-        'valid_patterns': ['https://www.mayoclinic.org/diseases-conditions/.*'],
-        'valid_patterns_no_store': ['https://www.mayoclinic.org/diseases-conditions/index.*']
-      }
+      'url_list': ['https://www.humanapharmacy.com/blog.cmd?article=New-live-agent-chat-is-here-to-help', 'https://www.humanapharmacy.com/blog.cmd?article=The-burning-sensation-of-heartburn',
+      'https://www.humanapharmacy.com/blog.cmd?article=What-you-might-not-know-about-adult-vaccinations', 'https://www.humanapharmacy.com/blog.cmd?article=Why-prior-authorization,-or-approval,-may-be-needed',
+      'https://www.humanapharmacy.com/blog.cmd?article=How-summer-temperatures-may-affect-drugs-',
+      'https://www.humanapharmacy.com/blog.cmd?article=Specialty-medicine-explained-',
+      'https://www.humanapharmacy.com/blog.cmd?article=What-to-know-about-high-blood-pressure',
+      'https://www.humanapharmacy.com/blog.cmd?article=Benefits-of-vitamin-D',
+      'https://www.humanapharmacy.com/blog.cmd?article=How-to-avoid-food-and-drug-interactions',
+      'https://www.humanapharmacy.com/blog.cmd?article=The-right-dose-of-medicine-at-the-right-time',
+      'https://www.humanapharmacy.com/blog.cmd?article=Why-your-prescription-orders-might-get-delayed',
+      'https://www.humanapharmacy.com/blog.cmd?article=Sleep-apnea-risks',
+      'https://www.humanapharmacy.com/blog.cmd?article=National-Osteoporosis-Awareness-and-Prevention-Month-',
+      'https://www.humanapharmacy.com/blog.cmd?article=Take-the-stress-out-of-medication-management',
+      'https://www.humanapharmacy.com/blog.cmd?article=How-to-read-your-order-status-messages-',
+      'https://www.humanapharmacy.com/blog.cmd?article=Ways-to-help-relieve-seasonal-allergy-symptoms-',
+      'https://www.humanapharmacy.com/blog.cmd?article=Know-how-to-detect-and-protect-from-skin-cancer-',
+      'https://www.humanapharmacy.com/blog.cmd?article=Safely-spring-clean-your-medicine-cabinets-',
+      'https://www.humanapharmacy.com/blog.cmd?article=Colorectal-in-home-screenings-',
+      'https://www.humanapharmacy.com/blog.cmd?article=Colorectal-Cancer-Awareness-Month-',
+      'https://www.humanapharmacy.com/blog.cmd?article=Medicare-Part-D-just-became-more-donut-and-less-donut-hole-',
+      'https://www.humanapharmacy.com/blog.cmd?article=One-click-refill-emails-make-prescription-ordering-simple',
+      'https://www.humanapharmacy.com/blog.cmd?article=Important-recall-information-Losartan-and-Losartan-HCTZ',
+      'https://www.humanapharmacy.com/blog.cmd?article=How-to-dispose-of-used-needles,-syringes-and-other-sharps-waste',
+      'https://www.humanapharmacy.com/blog.cmd?article=Preventing-falls,-fires-and-poisoning-in-your-home',
+      'https://www.humanapharmacy.com/blog.cmd?article=Learn-about-heart-disease-and-statins',
+      'https://www.humanapharmacy.com/blog.cmd?article=How-to-find-financial-assistance-for-specialty-medicine',
+      'https://www.humanapharmacy.com/blog.cmd?article=Prepare-for-unexpected-disasters-with-emergency-readiness-tips',
+      'https://www.humanapharmacy.com/blog.cmd?article=Avoid-infection-by-washing-your-hands-regularly-and-correctly',
+      'https://www.humanapharmacy.com/blog.cmd?article=FDA-recall-of-Irbesartan-and-Irbesartan/HCTZ-manufactured-by-Prinston',
+      'https://www.humanapharmacy.com/blog.cmd?article=Pick-the-right-way-to-refill-for-you',
+      'https://www.humanapharmacy.com/blog.cmd?article=Learn-how-to-pay-an-outstanding-balance-online',
+      'https://www.humanapharmacy.com/blog.cmd?article=Important-recall-information-for-Losartan-Potassium-100mg-Tablets',
+      'https://www.humanapharmacy.com/blog.cmd?article=Pick-the-right-cold-and-flu-medicine',
+      'https://www.humanapharmacy.com/blog.cmd?article=Taking-your-medication-on-time,-every-time',
+      'https://www.humanapharmacy.com/blog.cmd?article=See-how-easy-it-is-to-make-a-Humana-Pharmacy-online-account',
+      'https://www.humanapharmacy.com/blog.cmd?article=Text-message-reminders-make-remembering-to-refill-a-snap',
+      'https://www.humanapharmacy.com/blog.cmd?article=Schedule-deliveries-for-your-specialty-medicine-orders',
+      'https://www.humanapharmacy.com/blog.cmd?article=Healthy-eating-around-the-holidays',
+      'https://www.humanapharmacy.com/blog.cmd?article=Humana-Specialty-Pharmacy-delivers-when-it-counts',
+      'https://www.humanapharmacy.com/blog.cmd?article=Track-your-prescription-order,-skip-the-sign-in',
+      'https://www.humanapharmacy.com/blog.cmd?article=Transferring-prescriptions-is-a-snap-with-the-Humana-Pharmacy-mobile-app',
+      'https://www.humanapharmacy.com/blog.cmd?article=Get-your-preventive-screenings',
+      'https://www.humanapharmacy.com/blog.cmd?article=Welcome-to-the-improved-Humana-Pharmacy-dashboard',
+      'https://www.humanapharmacy.com/blog.cmd?article=Important-recall-information-for-Valsartan-and-Valsartan-HCTZ',
+      'https://www.humanapharmacy.com/blog.cmd?article=Quick-prescription-refill-is-simple,-swift-and-secure-',
+      'https://www.humanapharmacy.com/blog.cmd?article=Healthy-bone-habits-for-life',
+      'https://www.humanapharmacy.com/blog.cmd?article=What-you-need-to-know-about-over-the-counter-medicine',
+      'https://www.humanapharmacy.com/blog.cmd?article=Five-ideas-for-outdoor-fun',
+      'https://www.humanapharmacy.com/blog.cmd?article=We-made-the-Humana-Pharmacy-mobile-app-even-better',
+      'https://www.humanapharmacy.com/blog.cmd?article=Mobile-tools-for-managing-your-health',
+      'https://www.humanapharmacy.com/blog.cmd?article=Vitamin-safety',
+      'https://www.humanapharmacy.com/blog.cmd?article=Understanding-drug-formularies',
+      'https://www.humanapharmacy.com/blog.cmd?article=Text-notifications-for-refill-reminders-and-order-updates',
+      'https://www.humanapharmacy.com/blog.cmd?article=Learn-how-to-identify-and-avoid-email-spoofing-scams',
+      'https://www.humanapharmacy.com/blog.cmd?article=Clearing-the-cache-from-your-browser',
+      'https://www.humanapharmacy.com/blog.cmd?article=Why-sleep-matters',
+      'https://www.humanapharmacy.com/blog.cmd?article=Statins-101',
+      'https://www.humanapharmacy.com/blog.cmd?article=How-to-proactively-manage-your-stress-during-the-holidays',
+      'https://www.humanapharmacy.com/blog.cmd?article=Flu-shots-can-protect-you-and-others',
+      'https://www.humanapharmacy.com/blog.cmd?article=Effects-of-diabetes-on-your-heart',
+      'https://www.humanapharmacy.com/blog.cmd?article=Appropriate-use-of-antibiotics',
+      'https://www.humanapharmacy.com/blog.cmd?article=.Pharmacy-Verified-Website-Program',
+      'https://www.humanapharmacy.com/blog.cmd?article=Humana-Pharmacy-donates-returns-to-nonprofits',
+      'https://www.humanapharmacy.com/blog.cmd?article=Tips-on-how-to-travel-safely-with-medicine',
+      'https://www.humanapharmacy.com/blog.cmd?article=Keeping-your-mind-sharp',
+      'https://www.humanapharmacy.com/blog.cmd?article=Keeping-your-bones-strong',
+      'https://www.humanapharmacy.com/blog.cmd?article=New-hepatitis-therapies',
+      'https://www.humanapharmacy.com/blog.cmd?article=Treating-your-allergies',
+      'https://www.humanapharmacy.com/blog.cmd?article=Staying-on-track-with-your-medications',
+      'https://www.humanapharmacy.com/blog.cmd?article=Natural-ways-to-relieve-pain',
+      'https://www.humanapharmacy.com/blog.cmd?article=Traveling-with-medicine-during-the-holidays',
+      'https://www.humanapharmacy.com/blog.cmd?article=Top-10-health-screenings',
+      'https://www.humanapharmacy.com/blog.cmd?article=Top-fitness-trends-in-2017',
+      'https://www.humanapharmacy.com/blog.cmd?article=How-sugar-and-salt-affect-the-heart',
+      'https://www.humanapharmacy.com/blog.cmd?article=How-to-beat-seasonal-affective-disorder',
+      'https://www.humanapharmacy.com/blog.cmd?article=Healthy-holiday-eating-strategies',
+      'https://www.humanapharmacy.com/blog.cmd?article=Is-generic-medicine-right-for-you',
+      'https://www.humanapharmacy.com/blog.cmd?article=Stay-on-track-with-Humana-Pharmacy-mail-delivery',
+      'https://www.humanapharmacy.com/blog.cmd?article=New-look,-same-effectiveness-',
+      'https://www.humanapharmacy.com/blog.cmd?article=Patient-financial-assistance',
+      'https://www.humanapharmacy.com/blog.cmd?article=Specialty-meds-made-simple',
+      ]
     }
     c = Crawler(credentials)
     c.store_all()

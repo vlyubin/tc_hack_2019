@@ -191,14 +191,14 @@ class Crawler(object):
         timestamp_scraped = datetime.utcnow().isoformat() + "Z"
         for i, url in enumerate(urls):
             logger.info('Processing ' + url)
-            r = requests.get(url, headers=self.HEADERS, verify=False)
+            r = requests.get(url, headers=self.HEADERS)
             soup = BeautifulSoup(r.content, 'lxml')
             html = r.content.decode('utf-8') if isinstance(r.content, bytes) else str(r.content)
 
             page = {
                 'title': html2text.html2text(soup.title.string).strip(),
                 'url': url,
-                'html': html,
+                'html': str(r.content),
                 'timestamp_scraped': timestamp_scraped
             }
             yield page

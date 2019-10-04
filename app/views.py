@@ -11,23 +11,24 @@ import urllib
 import urllib.request
 import urllib.parse
 import requests
-from .utils import get_title_to_url_cahce
+from .utils import get_title_to_url_cahce, df
 
 ML_SERVER_URL = 'http://ec2-34-209-226-198.us-west-2.compute.amazonaws.com:5000'
 
-@app.route('/symptom')
-def symptom(symtoms):
+@app.route('/symptom', methods=['POST'])
+def symptom():
   """Takes a list of symptoms and returns a sorted list of top 5 diseases"""
+  info = request.get_json(force=True)
+  symptoms = info['symptoms']
 
-  df = pd.read_excel('data/raw_data.xlsx')
-    
-  df = df.fillna(method='ffill')
   df["match"] = 0
 
-  for i in symtoms:
+  for i in symptoms:
       df["match"] += df["Symptom"].apply(lambda x: (str.lower(i) in str.lower(x))*1)
 
-  return df.groupby("Disease")[["match", "Count of Disease Occurrence"]].sum().sort_values(["match", "Count of Disease Occurrence"], ascending = False).reset_index().head(10)
+  rv = df.groupby("Disease")[["match", "Count of Disease Occurrence"]].sum().sort_values(["match", "Count of Disease Occurrence"], ascending = False).reset_index().head(3)
+
+  return rv.to_json()
 
 @app.route('/')
 def home():
@@ -45,6 +46,7 @@ def login():
 
 @app.route('/search', methods=['POST'])
 def search():
+  print('search')
   info = request.get_json(force=True)
   data = {
     'source': 'mayo',
@@ -58,6 +60,26 @@ def search():
   rv = response.json()
   for entry in rv:
     entry[3] = get_title_to_url_cahce()[entry[1].split('-')[0]]
+
+  print('RV')
+  return json.dumps(rv)
+
+@app.route('/searchwellness', methods=['POST'])
+def searchwellness():
+  print('searchwellness')
+  info = request.get_json(force=True)
+  data = {
+    'source': 'wellness',
+    'query': info['query']
+  }
+
+  url = ML_SERVER_URL + '?' + urllib.parse.urlencode(data) 
+  response = requests.post(url=url) 
+  print(response.json())
+
+  rv = response.json()
+  for entry in rv:
+    entry[3] = 'https://www.humanapharmacy.com/blog.cmd' # TODO
 
   return json.dumps(rv)
 
@@ -77,7 +99,7 @@ def sh():
 
 @app.route('/disease-info')
 def di():
-  return render_template('stay_healthy.html')
+  return render_template('dis_info.html')
 
 @app.route('/my-info')
 def claims():
