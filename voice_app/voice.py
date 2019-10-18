@@ -1,4 +1,3 @@
-#Run on Pythonn 3.6 as: python3.6 book_me_a_ride.py --rider_name <RIDER_NAME>
 
 import speech_recognition as sr
 import os
